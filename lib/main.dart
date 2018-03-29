@@ -102,28 +102,25 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void onCateogrySelected(String category) {
     print("Selected Category $category");
-    // Navigator.of(context).push(new PageRouteBuilder(
-    //   opaque: true,
-    //   pageBuilder: (BuildContext context,_,__) {
-    //     return new SecondScreenPage(category);
-    //   },
-    //   transitionsBuilder: (_,Animation<double> animation,__,Widget child) {
-    //     return new FadeTransition(
-    //       opacity: new AnimationController(
-    //         duration: new Duration(
-    //           seconds: 1
-    //         ),
-    //         lowerBound: 0.0,
-    //         upperBound: 1.0,
-    //       ),
-    //       child: child
-    //     );
-    //   }
-    // ));
+    Navigator.of(context).push(new PageRouteBuilder(
+      opaque: true,
+      pageBuilder: (BuildContext context,_,__) {
+        return new SecondScreenPage(category);
+      },
+      transitionsBuilder: (_,Animation<double> animation,__,Widget child) {
+        return new SlideTransition(
+          position : new Tween(
+              begin: const Offset(1.0, 0.0),
+              end: Offset.zero
+            ).animate(animation),
+          child: child
+        );
+      }
+    ));
 
-    Navigator.push(context,new MaterialPageRoute(
-      builder: (context) => new SecondScreenPage(category))
-      );
+    // Navigator.push(context,new MaterialPageRoute(
+    //   builder: (context) => new SecondScreenPage(category))
+    //   );
   }
 
   TextEditingController mTextEditController = new TextEditingController();
