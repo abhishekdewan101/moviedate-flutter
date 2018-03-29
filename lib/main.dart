@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:moviedate/secondscreen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(new MyApp());
 
@@ -43,8 +47,22 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-  List<String> categoryData = new List<String>();
+  List<String> categoryData = [];
+
+
+  @override
+  void initState() {
+    super.initState();
+    getCategoryFromSharedPreference().then((List<String> data) {
+      setState((){
+        if (data != null) {
+          categoryData = data.toList(
+            growable: true
+          );
+        }
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +81,7 @@ class _MyHomePageState extends State<MyHomePage> {
         actions: <Widget>[
           new IconButton(
             icon: new Icon(Icons.add),
-            onPressed: (){addCategoryButton();}
+            onPressed: (){_neverSatisfied();}
           )
         ],
       ),
@@ -73,17 +91,73 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void addCategoryButton() {
-    print("Add Category Button Was pressed");
-    setState((){
-      categoryData.add("Category $_counter");
-      _counter++;
-    });
+  void addCategory(String category) {
+    if (category != null && category.isNotEmpty) {
+      setState(() {
+        categoryData.add(category);
+      });
+      saveCategoryToSharedPreference(categoryData);
+    }
   }
 
   void onCateogrySelected(String category) {
     print("Selected Category $category");
-    Navigator.push(context,new MaterialPageRoute(builder: (context) => new MyHomePage(title: category)));
+    // Navigator.of(context).push(new PageRouteBuilder(
+    //   opaque: true,
+    //   pageBuilder: (BuildContext context,_,__) {
+    //     return new SecondScreenPage(category);
+    //   },
+    //   transitionsBuilder: (_,Animation<double> animation,__,Widget child) {
+    //     return new FadeTransition(
+    //       opacity: new AnimationController(
+    //         duration: new Duration(
+    //           seconds: 1
+    //         ),
+    //         lowerBound: 0.0,
+    //         upperBound: 1.0,
+    //       ),
+    //       child: child
+    //     );
+    //   }
+    // ));
+
+    Navigator.push(context,new MaterialPageRoute(
+      builder: (context) => new SecondScreenPage(category))
+      );
+  }
+
+  TextEditingController mTextEditController = new TextEditingController();
+
+  Future<Null> _neverSatisfied() async {
+    return showDialog<Null>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      child: new AlertDialog(
+        title: new Text('Rewind and remember'),
+        content: new SingleChildScrollView(
+          child: new ListBody(
+            children: <Widget>[
+              new Text('What would like to add?'),
+              new TextField(controller: mTextEditController,
+                decoration: new InputDecoration(
+                hintText: "Add a new todo here"
+                )
+              )
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          new FlatButton(
+            child: new Text('Add'),
+            onPressed: () {
+              addCategory(mTextEditController.text);
+              mTextEditController.text = "";
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   List<Widget> createListItems(List<String> categoryData) {
@@ -95,5 +169,15 @@ class _MyHomePageState extends State<MyHomePage> {
       ));
     }
     return returnItems;
+  }
+
+  saveCategoryToSharedPreference(List<String> category) async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    pref.setStringList("data", category);
+  }
+
+  Future<List<String>> getCategoryFromSharedPreference() async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    return pref.getStringList("data");
   }
 }
